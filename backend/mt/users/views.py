@@ -19,10 +19,13 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         return token
 
 class MyTokenObtainPairView(TokenObtainPairView):
+    throttle_scope = 'login'
     serializer_class = MyTokenObtainPairSerializer
+
 
 class RegisterView(APIView):
     permission_classes = [AllowAny]
+    throttle_scope = 'register'
     def post(self, request):
         serrializer = UserSerializer(data=request.data)
         if serrializer.is_valid():
