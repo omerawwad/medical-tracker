@@ -8,7 +8,7 @@ from rest_framework import filters
 from .filters import MyOrderingFilter 
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
-from .tasks import create_periodic_task, send_email_reminder
+from .tasks import create_periodic_task, send_email_reminder, analyze_file
 
 @method_decorator(cache_page(60 * 15, key_prefix="drug_list"), name='dispatch')
 class DrugListAPIView(generics.ListCreateAPIView):
@@ -43,8 +43,9 @@ class MedicationReminderListCreateAPIView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
-        send_email_reminder.delay()
-        create_periodic_task()
+        # send_email_reminder.delay()
+        # create_periodic_task()
+        analyze_file.delay(file_id="24680", data="Seventh example of file data to analyze")
         return self.queryset.filter(user=self.request.user)
     
     def perform_create(self, serializer):
