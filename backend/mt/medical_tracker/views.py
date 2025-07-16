@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework import generics
-from .models import Drug, MedicationReminder
-from .serializers import DrugSerializer, MedicationReminderSerializer
+from .models import Drug, MedicationReminder, MedicalFile, FileImage
+from .serializers import DrugSerializer, MedicationReminderSerializer, MedicalFileSerializer, FileImageSerializer
 # from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAdminUser, IsAuthenticated
 from rest_framework import filters
@@ -45,8 +45,36 @@ class MedicationReminderListCreateAPIView(generics.ListCreateAPIView):
     def get_queryset(self):
         # send_email_reminder.delay()
         # create_periodic_task()
-        analyze_file.delay(file_id="24680", data="Seventh example of file data to analyze")
+        # analyze_file.delay(file_id="24680", data="Seventh example of file data to analyze")
         return self.queryset.filter(user=self.request.user)
     
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+
+class MedicalFileListCreateAPIView(generics.ListCreateAPIView):
+    """
+    API view to retrieve and create medical files.
+    """
+    queryset = MedicalFile.objects.all()
+    serializer_class = MedicalFileSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        return self.queryset.filter(owner=self.request.user)
+    
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
+
+class FileImageUploadAPIView(generics.CreateAPIView):
+    """
+    API view to upload images associated with medical files.
+    """
+    queryset = FileImage.objects.all()
+    serializer_class = FileImageSerializer
+    permission_classes = [IsAuthenticated]
+    
+    
+    def perform_create(self, serializer):
+        serializer.save()

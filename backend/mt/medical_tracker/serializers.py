@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Drug, MedicationReminder
+from .models import Drug, MedicationReminder, MedicalFile, FileImage
 class DrugSerializer(serializers.ModelSerializer):
     class Meta:
         model = Drug
@@ -35,4 +35,25 @@ class MedicationReminderSerializer(serializers.ModelSerializer):
     
     def create(self, validated_data):
         validated_data['user'] = self.context['request'].user
+        return super().create(validated_data)
+
+class FileImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FileImage
+        fields = ['id', 'image', 'image_url', 'image_extension', 'image_size', 'uploaded_at', 'file']
+        read_only_fields = ['id', 'upload_date']
+        write_only_fields = ['file', 'image']
+    
+    def create(self, validated_data):
+        return super().create(validated_data)
+
+class MedicalFileSerializer(serializers.ModelSerializer):
+    images = FileImageSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = MedicalFile
+        fields = ['id', 'owner', 'visible', 'archived', 'title', 'description', 'file_date', 'uploaded_at', 'updated_at', 'source', 'images']
+        read_only_fields = ['id', 'owner', 'uploaded_at', 'updated_at']
+    
+    def create(self, validated_data):
         return super().create(validated_data)

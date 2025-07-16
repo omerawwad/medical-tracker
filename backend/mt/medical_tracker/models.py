@@ -55,3 +55,52 @@ class MedicationReminder(models.Model):
         return None
     def __str__(self):
         return f'Reminder for {self.drug.name} at {self.reminder_time} for {self.user.username}, starting {self.start_date}'
+    
+
+
+class MedicalFile(models.Model):
+    id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4)
+    owner = models.ForeignKey('users.User', on_delete=models.CASCADE, related_name='medical_files', null=False, blank=False)
+    visible = models.BooleanField(default=True)
+    archived = models.BooleanField(default=False)
+    title = models.CharField(max_length=255, null=False, blank=False)
+    description = models.TextField(null=True, blank=True)
+
+    file_date = models.DateTimeField(default=timezone.now, null=False, blank=False)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    source = models.CharField(max_length=100, null=True, blank=True, help_text='Source of the medical file (e.g., hospital, clinic)')
+
+    class Meta:
+        ordering = ['-uploaded_at']
+        indexes = [
+            models.Index(fields=['owner'], name='medical_file_user_idx'),
+        ]
+
+    def __str__(self):
+        return f'Medical file {self.id} for {self.owner.username}'
+
+def file_path(instance, filename):
+    return f'users_files/{instance.file.owner.username}/{instance.file.id}/{filename}'
+
+class FileImage(models.Model):
+    file = models.ForeignKey(MedicalFile, on_delete=models.CASCADE, related_name='images', null=False, blank=False)
+    image = models.ImageField(upload_to=file_path, null=False, blank=False)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['uploaded_at']
+
+    @property
+    def image_size(self):
+        return self.image.size if self.image else 0
+    @property
+    def image_url(self):
+        return self.image.url if self.image else None
+    @property
+    def image_extension(self):
+        return self.image.name.split('.')[-1] if self.image else None
+    
+    def __str__(self):
+        return f'Image for {self.file.title} uploaded at {self.uploaded_at}, image size: {self.image_name} bytes'
