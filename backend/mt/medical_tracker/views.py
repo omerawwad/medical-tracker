@@ -45,7 +45,7 @@ class MedicationReminderListCreateAPIView(generics.ListCreateAPIView):
     def get_queryset(self):
         # send_email_reminder.delay()
         # create_periodic_task()
-        # analyze_file.delay(file_id="24680", data="Seventh example of file data to analyze")
+        analyze_file.delay(file_id="24680", data="Seventh example of file data to analyze")
         return self.queryset.filter(user=self.request.user)
     
     def perform_create(self, serializer):

@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Drug, MedicationReminder, MedicalFile, FileImage
+from .tasks import analyze_file_task
 class DrugSerializer(serializers.ModelSerializer):
     class Meta:
         model = Drug
@@ -40,12 +41,16 @@ class MedicationReminderSerializer(serializers.ModelSerializer):
 class FileImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = FileImage
-        fields = ['id', 'image', 'image_url', 'image_extension', 'image_size', 'uploaded_at', 'file']
+        fields = ['id', 'image', 'image_url', 'image_extension', 'image_size', 'uploaded_at', 'file', 'status']
         read_only_fields = ['id', 'upload_date']
         write_only_fields = ['file', 'image']
     
     def create(self, validated_data):
-        return super().create(validated_data)
+        instance = super().create(validated_data)
+        instance.status = FileImage.ImageStatus.UPLOADED
+        instance.save(update_fields=['status'])
+        analyze_file_task.delay(file_id=instance.id)
+        return instance
 
 class MedicalFileSerializer(serializers.ModelSerializer):
     images = FileImageSerializer(many=True, read_only=True)

@@ -85,9 +85,16 @@ def file_path(instance, filename):
     return f'users_files/{instance.file.owner.username}/{instance.file.id}/{filename}'
 
 class FileImage(models.Model):
+    class ImageStatus(models.TextChoices):
+        UPLOADING = 'uploading', 'Uploading'
+        UPLOADED = 'uploaded', 'Uploaded'
+        PROCESSING = 'processing', 'Processing'
+        PROCESSED = 'processed', 'Processed'
+        FAILED = 'failed', 'Failed'
     file = models.ForeignKey(MedicalFile, on_delete=models.CASCADE, related_name='images', null=False, blank=False)
     image = models.ImageField(upload_to=file_path, null=False, blank=False)
     uploaded_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, default=ImageStatus.UPLOADING, choices=ImageStatus.choices, null=False, blank=False)
 
     class Meta:
         ordering = ['uploaded_at']
@@ -103,4 +110,4 @@ class FileImage(models.Model):
         return self.image.name.split('.')[-1] if self.image else None
     
     def __str__(self):
-        return f'Image for {self.file.title} uploaded at {self.uploaded_at}, image size: {self.image_name} bytes'
+        return f'Image for {self.file.title} uploaded at {self.uploaded_at}, image size: {self.image_url} bytes'
