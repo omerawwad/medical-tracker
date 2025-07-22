@@ -6,7 +6,7 @@
 
 ### Main Service
 
-![DB Schema](images/medical_tracker_db_0001.png)
+![DB Schema](docs/medical_tracker_db_0001.png)
 
 ## End Points
 
